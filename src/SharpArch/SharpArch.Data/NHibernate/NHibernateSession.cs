@@ -21,40 +21,51 @@ namespace SharpArch.Data.NHibernate
 
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies)
 		{
-			return Init(storage, mappingAssemblies, null, null, null, null, null);
+            return Init(storage, mappingAssemblies, null, null, null, null, null, null);
 		}
 
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, string cfgFile)
 		{
-			return Init(storage, mappingAssemblies, null, cfgFile, null, null, null);
+            return Init(storage, mappingAssemblies, null, cfgFile, null, null, null, null);
 		}
 
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, IDictionary<string, string> cfgProperties)
 		{
-			return Init(storage, mappingAssemblies, null, null, cfgProperties, null, null);
+            return Init(storage, mappingAssemblies, null, null, cfgProperties, null, null, null);
 		}
 
-		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, string cfgFile, string validatorCfgFile)
+        public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, IDictionary<string, string> cfgProperties, string defaultFactoryKey)
+        {
+            return Init(storage, mappingAssemblies, null, null, cfgProperties, null, null, defaultFactoryKey);
+        }
+
+        public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, string cfgFile, string validatorCfgFile)
 		{
-			return Init(storage, mappingAssemblies, null, cfgFile, null, validatorCfgFile, null);
+            return Init(storage, mappingAssemblies, null, cfgFile, null, validatorCfgFile, null, null);
 		}
 
-		[CLSCompliant(false)]
+        [CLSCompliant(false)]
+        public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, AutoPersistenceModel autoPersistenceModel, IDictionary<string, string> cfgProperties, string defaultFactoryKey)
+        {
+            return Init(storage, mappingAssemblies, autoPersistenceModel, null, cfgProperties, null, null, defaultFactoryKey);
+        }
+        
+        [CLSCompliant(false)]
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, AutoPersistenceModel autoPersistenceModel)
 		{
-			return Init(storage, mappingAssemblies, autoPersistenceModel, null, null, null, null);
+            return Init(storage, mappingAssemblies, autoPersistenceModel, null, null, null, null, null);
 		}
 
 		[CLSCompliant(false)]
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, AutoPersistenceModel autoPersistenceModel, string cfgFile)
 		{
-			return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, null, null, null);
+            return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, null, null, null, null);
 		}
 
 		[CLSCompliant(false)]
 		public static Configuration Init(ISessionStorage storage, string[] mappingAssemblies, AutoPersistenceModel autoPersistenceModel, IDictionary<string, string> cfgProperties)
 		{
-			return Init(storage, mappingAssemblies, autoPersistenceModel, null, cfgProperties, null, null);
+            return Init(storage, mappingAssemblies, autoPersistenceModel, null, cfgProperties, null, null, null);
 		}
 
 		[CLSCompliant(false)]
@@ -65,7 +76,7 @@ namespace SharpArch.Data.NHibernate
 			string cfgFile,
 			string validatorCfgFile)
 		{
-			return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, null, validatorCfgFile, null);
+			return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, null, validatorCfgFile, null ,null);
 		}
 
 		[CLSCompliant(false)]
@@ -77,10 +88,22 @@ namespace SharpArch.Data.NHibernate
 			IDictionary<string, string> cfgProperties,
 			string validatorCfgFile)
 		{
-			return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, cfgProperties, validatorCfgFile, null);
+			return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, cfgProperties, validatorCfgFile, null, null);
 		}
+        [CLSCompliant(false)]
+        public static Configuration Init(
+            ISessionStorage storage,
+            string[] mappingAssemblies,
+            AutoPersistenceModel autoPersistenceModel,
+            string cfgFile,
+            IDictionary<string, string> cfgProperties,
+            string validatorCfgFile,
+            IPersistenceConfigurer persistenceConfigurer)
+        {
+            return Init(storage, mappingAssemblies, autoPersistenceModel, cfgFile, cfgProperties, validatorCfgFile, persistenceConfigurer, null);
+        }
 
-		[CLSCompliant(false)]
+	    [CLSCompliant(false)]
 		public static Configuration Init(
 			ISessionStorage storage,
 			string[] mappingAssemblies,
@@ -88,9 +111,16 @@ namespace SharpArch.Data.NHibernate
 			string cfgFile,
 			IDictionary<string, string> cfgProperties,
 			string validatorCfgFile,
-			IPersistenceConfigurer persistenceConfigurer)
+			IPersistenceConfigurer persistenceConfigurer,
+            string defaultFactoryKey)
 		{
 			InitStorage(storage);
+
+            if( !string.IsNullOrEmpty(defaultFactoryKey))
+            {
+                _defaultFactoryKey = defaultFactoryKey;
+            }
+            
             try {
                 return AddConfiguration(DefaultFactoryKey, mappingAssemblies, autoPersistenceModel, cfgFile, cfgProperties, validatorCfgFile, persistenceConfigurer);
             }
@@ -324,10 +354,15 @@ namespace SharpArch.Data.NHibernate
 			return GetSessionFactoryFor(DefaultFactoryKey);
 		}
 
-		/// <summary>
+        private static string _defaultFactoryKey = "nhibernate.current_session";
+
+	    /// <summary>
 		/// The default factory key used if only one database is being communicated with.
 		/// </summary>
-		public static readonly string DefaultFactoryKey = "nhibernate.current_session";
+		public static string DefaultFactoryKey
+	    {
+	        get { return _defaultFactoryKey; }
+	    }
 
 		/// <summary>
 		/// An application-specific implementation of ISessionStorage must be setup either thru

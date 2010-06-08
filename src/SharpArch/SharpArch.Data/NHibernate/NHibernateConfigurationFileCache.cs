@@ -54,10 +54,31 @@
         /// <returns>If an up to date cached object is available, a <see cref="Configuration"/> 
         /// object, otherwise null.</returns>
         public Configuration LoadConfiguration(string configKey, string configPath, string[] mappingAssemblies) {
+            
+            if (configKey == null) throw new ArgumentNullException("configKey");
+
             string cachePath = CachedConfigPath(configKey);
-            AppendToDependentFilePaths(mappingAssemblies);
-            AppendToDependentFilePaths(configPath);
-            if (IsCachedConfigCurrent(cachePath, configPath)) {
+            string config;
+            
+            if (configPath == null)
+            {
+                config = CachedConfigPath(configKey);
+                File.Create(config);
+                AppendToDependentFilePaths(config); 
+
+            }else
+            {
+                config = configPath;
+                AppendToDependentFilePaths(configPath);
+            }
+
+            if (mappingAssemblies != null)
+            {
+                AppendToDependentFilePaths(mappingAssemblies);
+            }
+
+            if (IsCachedConfigCurrent(cachePath, config))
+            {
                 return FileCache.RetrieveFromCache<Configuration>(cachePath);
             }
 
